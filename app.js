@@ -85,27 +85,23 @@ app.put('/updateFile/:filename', (req, res) => {
 
 
 
-​
-app.delete('/deleteFile', async (req, res) => {
-  const { filename, password } = req.body;
-  if (!filename) {
-    return res.status(400).send('Filename parameter is required.');
+// Delete File
+app.delete('/deleteFile/:filename', (req, res) => {
+  const { filename } = req.params;
+  const { password } = req.query;
+
+  if (!password) {
+    return res.status(401).json({ error: 'Password is required to delete this file' });
   }
 
-  if (password !== 'optionalPassword') {
-    return res.status(401).send('Unauthorized');
-  }
 
-  try {
-    await fs.unlink(filename);
-    res.sendStatus(200);
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      return res.status(400).send('File not found');
+  const filePath = path.join(__dirname, filename);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to delete file' });
     }
-    console.error('Error deleting file:', err);
-    res.status(500).send('Internal Server Error');
-  }
+    res.status(200).send();
+  });
 });
 
 
